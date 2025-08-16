@@ -1,0 +1,27 @@
+# Python
+backend/__pycache__/
+backend/*.pyc
+backend/.env
+
+# Node / React
+frontend/node_modules/
+frontend/build/
+frontend/.env
+
+# Docker
+*.log
+*.env
+*.tmp
+docker-compose.override.yml
+
+# Helm
+charts/flask-react-app/templates/*.tpl   # si tu as des templates générés localement
+charts/flask-react-app/.helmignore
+
+# GitHub Actions
+.github/workflows/secrets.yml
+
+# OS / IDE
+.vscode/
+.idea/
+.DS_Store
