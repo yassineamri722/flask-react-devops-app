@@ -1,74 +1,63 @@
-name: CI Pipeline - Build, Scan, Push
+name: CI Pipeline - Parallel Build, Scan, Push
 
 on:
   push:
     branches:
       - dev
 
+env:
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
 jobs:
-  build-scan-push:
+  backend:
+    name: Build, Scan & Push Backend
     runs-on: ubuntu-24.04
-
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-      IMAGE_TAG: ${{ github.sha }}
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ---------------------------
-      # Build backend image
-      # ---------------------------
       - name: Build backend image
-        run: |
-          docker build -t $DOCKERHUB_USERNAME/flask-backend:${IMAGE_TAG} ./backend
+        run: docker build -t $DOCKERHUB_USERNAME/flask-backend:${{ github.sha }} ./backend
 
-      # ---------------------------
-      # Scan backend image with Trivy
-      # ---------------------------
       - name: Scan backend image
         uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: 'docker.io/${{ env.DOCKERHUB_USERNAME }}/flask-backend:${{ env.IMAGE_TAG }}'
-          format: 'table'
-          exit-code: '1'
+          image-ref: "docker.io/${{ env.DOCKERHUB_USERNAME }}/flask-backend:${{ github.sha }}"
+          format: table
+          exit-code: 1
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
 
-      # ---------------------------
-      # Build frontend image
-      # ---------------------------
-      - name: Build frontend image
-        run: |
-          docker build -t $DOCKERHUB_USERNAME/react-frontend:${IMAGE_TAG} ./frontend
-
-      # ---------------------------
-      # Scan frontend image with Trivy
-      # ---------------------------
-      - name: Scan frontend image
-        uses: aquasecurity/trivy-action@0.28.0
-        with:
-          image-ref: 'docker.io/${{ env.DOCKERHUB_USERNAME }}/react-frontend:${{ env.IMAGE_TAG }}'
-          format: 'table'
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
-
-      # ---------------------------
-      # Login to DockerHub
-      # ---------------------------
       - name: DockerHub login
         run: echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
 
-      # ---------------------------
-      # Push images to DockerHub
-      # ---------------------------
       - name: Push backend image
-        run: docker push $DOCKERHUB_USERNAME/flask-backend:${IMAGE_TAG}
+        run: docker push $DOCKERHUB_USERNAME/flask-backend:${{ github.sha }}
+
+  frontend:
+    name: Build, Scan & Push Frontend
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build frontend image
+        run: docker build -t $DOCKERHUB_USERNAME/react-frontend:${{ github.sha }} ./frontend
+
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: "docker.io/${{ env.DOCKERHUB_USERNAME }}/react-frontend:${{ github.sha }}"
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
+
+      - name: DockerHub login
+        run: echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
 
       - name: Push frontend image
-        run: docker push $DOCKERHUB_USERNAME/react-frontend:${IMAGE_TAG}
+        run: docker push $DOCKERHUB_USERNAME/react-frontend:${{ github.sha }}
