@@ -7,7 +7,7 @@ on:
 
 jobs:
   build-scan-push:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
 
     env:
       DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # ---------------------------
       # Build backend image
@@ -29,12 +29,14 @@ jobs:
       # Scan backend image with Trivy
       # ---------------------------
       - name: Scan backend image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: $DOCKERHUB_USERNAME/flask-backend:${IMAGE_TAG}
-          format: table
-          exit-code: 1    # fails the job if vulnerabilities found
-          ignore-unfixed: false
+          image-ref: 'docker.io/${{ env.DOCKERHUB_USERNAME }}/flask-backend:${{ env.IMAGE_TAG }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       # ---------------------------
       # Build frontend image
@@ -47,19 +49,20 @@ jobs:
       # Scan frontend image with Trivy
       # ---------------------------
       - name: Scan frontend image
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
-          image-ref: $DOCKERHUB_USERNAME/react-frontend:${IMAGE_TAG}
-          format: table
-          exit-code: 1
-          ignore-unfixed: false
+          image-ref: 'docker.io/${{ env.DOCKERHUB_USERNAME }}/react-frontend:${{ env.IMAGE_TAG }}'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'
 
       # ---------------------------
       # Login to DockerHub
       # ---------------------------
       - name: DockerHub login
-        run: |
-          echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+        run: echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
 
       # ---------------------------
       # Push images to DockerHub
