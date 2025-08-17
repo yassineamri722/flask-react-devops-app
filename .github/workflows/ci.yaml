@@ -1,0 +1,71 @@
+name: CI Pipeline - Build, Scan, Push
+
+on:
+  push:
+    branches:
+      - dev
+
+jobs:
+  build-scan-push:
+    runs-on: ubuntu-latest
+
+    env:
+      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      IMAGE_TAG: ${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # ---------------------------
+      # Build backend image
+      # ---------------------------
+      - name: Build backend image
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/flask-backend:${IMAGE_TAG} ./backend
+
+      # ---------------------------
+      # Scan backend image with Trivy
+      # ---------------------------
+      - name: Scan backend image
+        uses: aquasecurity/trivy-action@v2
+        with:
+          image-ref: $DOCKERHUB_USERNAME/flask-backend:${IMAGE_TAG}
+          format: table
+          exit-code: 1    # fails the job if vulnerabilities found
+          ignore-unfixed: false
+
+      # ---------------------------
+      # Build frontend image
+      # ---------------------------
+      - name: Build frontend image
+        run: |
+          docker build -t $DOCKERHUB_USERNAME/react-frontend:${IMAGE_TAG} ./frontend
+
+      # ---------------------------
+      # Scan frontend image with Trivy
+      # ---------------------------
+      - name: Scan frontend image
+        uses: aquasecurity/trivy-action@v2
+        with:
+          image-ref: $DOCKERHUB_USERNAME/react-frontend:${IMAGE_TAG}
+          format: table
+          exit-code: 1
+          ignore-unfixed: false
+
+      # ---------------------------
+      # Login to DockerHub
+      # ---------------------------
+      - name: DockerHub login
+        run: |
+          echo $DOCKERHUB_TOKEN | docker login -u $DOCKERHUB_USERNAME --password-stdin
+
+      # ---------------------------
+      # Push images to DockerHub
+      # ---------------------------
+      - name: Push backend image
+        run: docker push $DOCKERHUB_USERNAME/flask-backend:${IMAGE_TAG}
+
+      - name: Push frontend image
+        run: docker push $DOCKERHUB_USERNAME/react-frontend:${IMAGE_TAG}
