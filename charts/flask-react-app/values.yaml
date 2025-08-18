@@ -2,7 +2,7 @@ backend:
   image:
     repository: yassineamri/flask-backend   
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   service:
     type: ClusterIP
     port: 5000
@@ -11,8 +11,27 @@ frontend:
   image:
     repository: yassineamri/react-frontend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   service:
     type: NodePort
     port: 3000
     nodePort: 30080
+ingress:
+  enabled: true
+  className: nginx
+  hosts:
+    - host: frontend.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: frontend
+            port: 3000
+    - host: backend.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service:
+            name: backend
+            port: 5000
+  tls: []
