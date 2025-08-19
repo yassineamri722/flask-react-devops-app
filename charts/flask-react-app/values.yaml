@@ -22,14 +22,14 @@ ingress:
   hosts:
     - host: frontend.local
       paths:
-        - path: /
+        - path: /front
           pathType: Prefix
           service:
             name: frontend
             port: 3000
     - host: backend.local
       paths:
-        - path: /
+        - path: /back
           pathType: Prefix
           service:
             name: backend
