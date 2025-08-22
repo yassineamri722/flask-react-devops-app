@@ -95,3 +95,7 @@ jobs:
 
       - name: Push frontend image
         run: docker push $DOCKERHUB_USERNAME/react-frontend:${{ github.sha }}
+
+
+
+        #fixe sonar
