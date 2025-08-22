@@ -1,18 +1,50 @@
-name: CI Pipeline - Parallel Build, Scan, Push
+name: CI Pipeline - Sonar → Build → Scan → Push
 
 on:
   push:
     branches:
+      - main
       - dev
+  pull_request:
 
 env:
   DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
-  backend:
-    name: Build, Scan & Push Backend
+  # ---------------- SonarCloud ----------------
+  sonar:
+    name: SonarCloud Analysis
     runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # required for PR analysis
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Sonar packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  # ---------------- Backend ----------------
+  backend:
+    name: Backend - Build, Scan & Push
+    runs-on: ubuntu-24.04
+    needs: sonar   # wait for SonarCloud first
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -36,9 +68,11 @@ jobs:
       - name: Push backend image
         run: docker push $DOCKERHUB_USERNAME/flask-backend:${{ github.sha }}
 
+  # ---------------- Frontend ----------------
   frontend:
-    name: Build, Scan & Push Frontend
+    name: Frontend - Build, Scan & Push
     runs-on: ubuntu-24.04
+    needs: sonar   # wait for SonarCloud first
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
