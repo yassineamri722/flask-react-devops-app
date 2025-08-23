@@ -2,7 +2,7 @@
 
 The project uses the following workflow:
 
-![Architecture Diagram](docs/pipeline.drawio(1).png)
+![Architecture Diagram](docs/pipeline.drawio(2).png)
 
 ### Continuous Integration (CI)
 
