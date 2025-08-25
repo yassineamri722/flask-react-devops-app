@@ -90,4 +90,4 @@ jobs:
           git config user.email "actions@github.com"
           git add charts/flask-react-app/values.yaml
           git diff-index --quiet HEAD || git commit -m "Update image tag to ${{ github.sha }}"
-          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@https://github.com/yassineamri722/flask-react-devops-app.git HEAD:${{ github.ref_name }}
+          git push https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/yassineamri722/flask-react-devops-app.git HEAD:${{ github.ref_name }}
