@@ -1,7 +1,7 @@
 backend:
   image:
     repository: yassineamri/flask-backend   
-    tag: latest
+    tag: 2c4141fbc74c14d1e6382309a28d94bf21d7909c
     pullPolicy: Always
   service:
     type: ClusterIP
@@ -10,7 +10,7 @@ backend:
 frontend:
   image:
     repository: yassineamri/react-frontend
-    tag: latest
+    tag: 2c4141fbc74c14d1e6382309a28d94bf21d7909c
     pullPolicy: Always
   service:
     type: NodePort
