@@ -87,7 +87,16 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # fetch latest branch so we're up to date
+          git fetch origin ${{ github.ref_name }}
+          git checkout ${{ github.ref_name }}
+          git rebase origin/${{ github.ref_name }}
+
+          # commit changes (only if there are any)
           git add charts/flask-react-app/values.yaml
           git commit -m "Update image tag to ${{ github.sha }}" || echo "No changes to commit"
+
+          # push back
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git push origin HEAD:${{ github.ref }}
+          git push origin HEAD:${{ github.ref_name }}
