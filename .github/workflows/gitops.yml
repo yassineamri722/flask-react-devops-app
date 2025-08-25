@@ -49,6 +49,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -61,6 +63,7 @@ jobs:
 
       - name: Build & Push Docker image
         uses: docker/build-push-action@v6
+        id: docker_build
         with:
           context: ./${{ matrix.service }}
           push: true
@@ -78,25 +81,36 @@ jobs:
           vuln-type: os,library
           severity: CRITICAL,HIGH
 
-          # ---------------- Update Helm values ----------------
-      - name: Update Helm values.yaml for both backend & frontend
+  # ---------------- Update Helm values & GitOps ----------------
+  update-helm:
+    name: Update Helm values.yaml & Push
+    runs-on: ubuntu-24.04
+    needs: build-scan
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Update Helm values.yaml with new image tags
         run: |
           FILE=charts/flask-react-app/values.yaml
-          sed -i "s|tag:.*|tag: ${{ github.sha }}|g" $FILE
-      - name: Commit and push image tag update
+          sed -i "s|backend:\s*image:\s*repository:.*|backend:\n  image:\n    repository: ${{ env.DOCKERHUB_USERNAME }}/backend\n    tag: ${{ github.sha }}\n    pullPolicy: Always|" $FILE
+          sed -i "s|frontend:\s*image:\s*repository:.*|frontend:\n  image:\n    repository: ${{ env.DOCKERHUB_USERNAME }}/frontend\n    tag: ${{ github.sha }}\n    pullPolicy: Always|" $FILE
+
+      - name: Commit and push Helm changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # fetch latest branch so we're up to date
-          git fetch origin ${{ github.ref_name }}
-          git checkout ${{ github.ref_name }}
-          git rebase origin/${{ github.ref_name }}
-
-          # commit changes (only if there are any)
+          # stage changes
           git add charts/flask-react-app/values.yaml
-          git commit -m "Update image tag to ${{ github.sha }}" || echo "No changes to commit"
 
-          # push back
+          # commit only if there are changes
+          git diff --cached --quiet || git commit -m "Update image tags to ${{ github.sha }}"
+
+          # set remote with token
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-          git push origin HEAD:${{ github.ref_name }}
+
+          # push changes
+          git push origin HEAD:${{ github.ref_name }} || echo "Push skipped (no changes)"
