@@ -1,0 +1,21 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: flask-react-app
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: 'https://github.com/yassineamri722/flask-react-devops-app.git'
+    targetRevision: main
+    path: charts/flask-react-app
+    helm:
+      valueFiles:
+        - values.yaml
+  destination:
+    server: 'https://kubernetes.default.svc'
+    namespace: flask-react
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
