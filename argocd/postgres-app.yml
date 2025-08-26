@@ -6,11 +6,11 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/yassineamri722/flask-react-devops-app.git
+    repoURL: 'https://github.com/yassineamri722/flask-react-devops-app.git'
     path: postgres
     targetRevision: dev
   destination:
-    server: https://kubernetes.default.svc
+    server: 'https://kubernetes.default.svc'
     namespace: dev
   syncPolicy:
     automated: {}
