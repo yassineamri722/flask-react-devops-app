@@ -1,16 +1,15 @@
 backend:
   image:
-    repository: yassineamri/flask-backend   
-    tag: 2c4141fbc74c14d1e6382309a28d94bf21d7909c
+    repository: yassineamri/backend
+    tag: 8d3aa46e91b8b958491b65b4d8cd8dd2489da740
     pullPolicy: Always
   service:
     type: ClusterIP
     port: 5000
-
 frontend:
   image:
-    repository: yassineamri/react-frontend
-    tag: 2c4141fbc74c14d1e6382309a28d94bf21d7909c
+    repository: yassineamri/frontend
+    tag: 8d3aa46e91b8b958491b65b4d8cd8dd2489da740
     pullPolicy: Always
   service:
     type: NodePort
