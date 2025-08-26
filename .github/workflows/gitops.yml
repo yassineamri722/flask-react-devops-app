@@ -98,10 +98,20 @@ jobs:
       - name: Update Helm values.yaml with new image tags
         run: |
           FILE=charts/flask-react-app/values.yaml
+
           # Update backend image
-          yq eval ".backend.image.repository = \"${{ env.DOCKERHUB_USERNAME }}/backend\" | .backend.image.tag = \"${{ github.sha }}\" | .backend.image.pullPolicy = \"Always\"" -i $FILE
+          yq -i '
+            .backend.image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/backend" |
+            .backend.image.tag = "'${{ github.sha }}'" |
+            .backend.image.pullPolicy = "Always"
+          ' $FILE
+
           # Update frontend image
-          yq eval ".frontend.image.repository = \"${{ env.DOCKERHUB_USERNAME }}/frontend\" | .frontend.image.tag = \"${{ github.sha }}\" | .frontend.image.pullPolicy = \"Always\"" -i $FILE
+          yq -i '
+            .frontend.image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/frontend" |
+            .frontend.image.tag = "'${{ github.sha }}'" |
+            .frontend.image.pullPolicy = "Always"
+          ' $FILE
 
       - name: Commit and push Helm changes
         run: |
