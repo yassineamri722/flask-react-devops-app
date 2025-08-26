@@ -10,7 +10,7 @@ env:
   DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
-  # ---------------- SonarCloud ----------------
+  # ---------------- SonarCloud Analysis ----------------
   sonar:
     name: SonarCloud Analysis
     runs-on: ubuntu-24.04
@@ -38,7 +38,7 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  # ---------------- Build, Scan & Push ----------------
+  # ---------------- Build, Scan & Push Docker ----------------
   build-scan:
     name: Build, Scan & Push (${{ matrix.service }})
     runs-on: ubuntu-24.04
@@ -81,7 +81,7 @@ jobs:
           vuln-type: os,library
           severity: CRITICAL,HIGH
 
-  # ---------------- Update Helm values & GitOps ----------------
+  # ---------------- Update Helm values.yaml & GitOps ----------------
   update-helm:
     name: Update Helm values.yaml & Push
     runs-on: ubuntu-24.04
@@ -92,26 +92,27 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Install yq
+        run: sudo apt-get update && sudo apt-get install -y yq
+
       - name: Update Helm values.yaml with new image tags
         run: |
           FILE=charts/flask-react-app/values.yaml
-          sed -i "s|backend:\s*image:\s*repository:.*|backend:\n  image:\n    repository: ${{ env.DOCKERHUB_USERNAME }}/backend\n    tag: ${{ github.sha }}\n    pullPolicy: Always|" $FILE
-          sed -i "s|frontend:\s*image:\s*repository:.*|frontend:\n  image:\n    repository: ${{ env.DOCKERHUB_USERNAME }}/frontend\n    tag: ${{ github.sha }}\n    pullPolicy: Always|" $FILE
+          # Update backend image
+          yq eval ".backend.image.repository = \"${{ env.DOCKERHUB_USERNAME }}/backend\" | .backend.image.tag = \"${{ github.sha }}\" | .backend.image.pullPolicy = \"Always\"" -i $FILE
+          # Update frontend image
+          yq eval ".frontend.image.repository = \"${{ env.DOCKERHUB_USERNAME }}/frontend\" | .frontend.image.tag = \"${{ github.sha }}\" | .frontend.image.pullPolicy = \"Always\"" -i $FILE
 
       - name: Commit and push Helm changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # stage changes
           git add charts/flask-react-app/values.yaml
 
           # commit only if there are changes
           git diff --cached --quiet || git commit -m "Update image tags to ${{ github.sha }}"
 
-          # set remote with token
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
 
-          # push changes
           git push origin HEAD:${{ github.ref_name }} || echo "Push skipped (no changes)"
-#test sonar
