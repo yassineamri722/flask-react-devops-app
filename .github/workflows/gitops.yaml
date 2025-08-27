@@ -102,14 +102,14 @@ jobs:
             .image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/backend" |
             .image.tag = "'${{ github.sha }}'" |
             .image.pullPolicy = "Always"
-          ' charts/backend/values.yml
+          ' charts/backend/values.yaml
 
           # Update frontend chart
           yq -i -y '
             .image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/frontend" |
             .image.tag = "'${{ github.sha }}'" |
             .image.pullPolicy = "Always"
-          ' charts/frontend/values.yml
+          ' charts/frontend/values.yaml
 
       - name: Commit and push Helm changes
         run: |
