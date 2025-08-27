@@ -34,3 +34,7 @@ ingress:
             name: backend
             port: 5000
   tls: []
+image:
+  repository: yassineamri/backend
+  tag: a79e96e1bc4fe82d5c40b631605d5f2e77a3f505
+  pullPolicy: Always
