@@ -1,0 +1,9 @@
+frontend:
+  image:
+    repository: yassineamri/frontend
+    tag: 691ac3ecd543f969b46577b88cf3bd22ea062c49
+    pullPolicy: Always
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 30080

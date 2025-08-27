@@ -1,20 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: postgres
+  name: root-app
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/yassineamri722/flask-react-devops-app.git'
     targetRevision: dev
-    path: charts/postgres
-    helm:
-      valueFiles:
-        - values.yml
+    path: argo-apps
   destination:
     server: 'https://kubernetes.default.svc'
-    namespace: dev
+    namespace: argocd
   syncPolicy:
     automated:
       prune: true

@@ -1,0 +1,17 @@
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "15"
+  pullPolicy: IfNotPresent
+
+postgresUser: admin
+postgresPassword: admin123
+postgresDatabase: mydb
+
+service:
+  type: ClusterIP
+  port: 5432
+
+storage:
+  size: 1Gi

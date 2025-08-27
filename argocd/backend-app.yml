@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: flask-react-app
+  name: backend
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: 'https://github.com/yassineamri722/flask-react-devops-app.git'
     targetRevision: dev
-    path: charts/flask-react-app
+    path: charts/backend
     helm:
       valueFiles:
-        - values.yaml
+        - values.yml
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: dev

@@ -1,0 +1,17 @@
+className: nginx
+
+hosts:
+  - host: myapp.local
+    paths:
+      - path: /
+        pathType: Prefix
+        service:
+          name: frontend
+          port: 80
+      - path: /api
+        pathType: Prefix
+        service:
+          name: backend
+          port: 5000
+
+tls: []

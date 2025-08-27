@@ -97,33 +97,26 @@ jobs:
 
       - name: Update Helm values.yaml with new image tags
         run: |
-          FILE=charts/flask-react-app/values.yaml
-
-          # Update backend image
+          # Update backend chart
           yq -i -y '
-            .backend.image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/backend" |
-            .backend.image.tag = "'${{ github.sha }}'" |
-            .backend.image.pullPolicy = "Always"
-          ' $FILE
+            .image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/backend" |
+            .image.tag = "'${{ github.sha }}'" |
+            .image.pullPolicy = "Always"
+          ' charts/backend/values.yaml
 
-          # Update frontend image
+          # Update frontend chart
           yq -i -y '
-            .frontend.image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/frontend" |
-            .frontend.image.tag = "'${{ github.sha }}'" |
-            .frontend.image.pullPolicy = "Always"
-          ' $FILE
-
+            .image.repository = "'${{ env.DOCKERHUB_USERNAME }}'/frontend" |
+            .image.tag = "'${{ github.sha }}'" |
+            .image.pullPolicy = "Always"
+          ' charts/frontend/values.yaml
 
       - name: Commit and push Helm changes
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          git add charts/flask-react-app/values.yaml
-
-          # commit only if there are changes
-          git diff --cached --quiet || git commit -m "Update image tags to ${{ github.sha }}"
-
+          git add charts/frontend/values.yaml charts/backend/values.yaml
+          git diff --cached --quiet || git commit -m "Update frontend & backend images to ${{ github.sha }}"
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
-
           git push origin HEAD:${{ github.ref_name }} || echo "Push skipped (no changes)"
