@@ -1,0 +1,14 @@
+---
+- name: Create ArgoCD namespace
+  k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: argocd
+
+- name: Install ArgoCD using official manifest
+  command: kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+  args:
+    creates: /tmp/argocd_installed

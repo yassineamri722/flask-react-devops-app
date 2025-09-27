@@ -1,0 +1,33 @@
+---
+- name: Ensure Docker is installed
+  apt:
+    name: docker.io
+    state: present
+    update_cache: yes
+  become: yes
+
+- name: Add current user to docker group
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: yes
+  become: yes
+
+- name: Download Kind binary
+  get_url:
+    url: https://kind.sigs.k8s.io/dl/v0.25.0/kind-linux-amd64
+    dest: /usr/local/bin/kind
+    mode: '0755'
+  become: yes
+
+- name: Download kubectl
+  get_url:
+    url: https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+    dest: /usr/local/bin/kubectl
+    mode: '0755'
+  become: yes
+
+- name: Create Kind cluster
+  command: kind create cluster --name my-cluster
+  args:
+    creates: ~/.kube/config

@@ -1,0 +1,8 @@
+---
+- name: Setup Kind cluster with ArgoCD and Monitoring
+  hosts: kind
+  become: yes
+  roles:
+    - kind
+    - argocd
+    - monitoring
