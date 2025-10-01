@@ -36,5 +36,5 @@ ingress:
   tls: []
 image:
   repository: yassineamri/backend
-  tag: 8511915df443bc548e65fcb260a6c3436d7034c3
+  tag: 4c3533c1df9fed4c60b36485c0db9b59128f4989
   pullPolicy: Always
